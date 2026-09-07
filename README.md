@@ -2,6 +2,8 @@
 
 Tässä tehtävässä rakennat pienen kamerakatalogin pelkällä JavaScriptin DOM-ohjelmoinnilla. HTML-tiedostossa on valmiina vain `div#app`; sinun tehtäväsi on luoda käyttöliittymä JavaScriptillä.
 
+Tehtävän laajuus on noin 1–2 tuntia.
+
 ## Oppimistavoitteet
 
 Harjoituksen jälkeen osaat:
@@ -9,7 +11,7 @@ Harjoituksen jälkeen osaat:
 - luoda DOM-elementtejä `document.createElement`-funktiolla
 - valita ja päivittää elementtejä `querySelector`- ja `textContent`-ominaisuuksilla
 - käyttää `classList`-, `dataset`- ja `addEventListener`-ominaisuuksia
-- toteuttaa suodatuksen ja järjestämisen JavaScript-taulukon perusteella
+- toteuttaa suodatuksen JavaScript-taulukon perusteella
 - käyttää event delegation -mallia dynaamisesti luotujen painikkeiden kanssa
 - tallentaa pienen määrän käyttöliittymätilaa `localStorageen`
 
@@ -33,41 +35,77 @@ Testit etsivät seuraavia elementtejä. Käytä täsmälleen näitä `data-testi
 | --- | --- |
 | `h1` | Sisältää sanan `Kamerakatalogi` |
 | `[data-testid="search-input"]` | Hakukenttä, joka suodattaa valmistajan tai mallin mukaan |
-| `[data-testid="sensor-filter"]` | `select`, jossa vaihtoehdot `all`, `Full Frame`, `APS-C`, `MFT` |
-| `[data-testid="sort-select"]` | `select`, jossa vaihtoehdot `price-asc`, `price-desc`, `year-desc` |
-| `[data-testid="favorites-only"]` | Checkbox: näytä vain suosikit |
-| `[data-testid="camera-count"]` | Näyttää näkyvien kameroiden määrän |
-| `[data-testid="favorite-count"]` | Näyttää suosikkien määrän |
-| `[data-testid="camera-list"]` | Lista tai section, jonka sisällä kamerakortit ovat |
+| `[data-testid="camera-list"]` | Elementti, jonka sisällä kamerakortit ovat |
 | `[data-testid="camera-card"]` | Yksi kamerakortti; lisää myös `data-id="kameran-id"` |
-| `[data-testid="favorite-button"]` | Suosikkipainike; lisää myös `data-id="kameran-id"` |
+| `[data-testid="favorite-button"]` | Suosikkipainike kortin sisällä; lisää myös `data-id="kameran-id"` |
+
+## Esimerkkirakenne
+
+Kun sovellus on rakennettu, `div#app`:n sisällön pitäisi näyttää suunnilleen tältä. Tätä HTML:ää **ei kirjoiteta käsin** `index.html`-tiedostoon, vaan JavaScript luo sen `document.createElement`-funktiolla.
+
+```html
+<div id="app">
+  <h1>Kamerakatalogi</h1>
+
+  <div class="controls">
+    <label for="search">Hae kameraa</label>
+    <input id="search" type="search" data-testid="search-input" placeholder="Esim. Canon tai X-T5" />
+  </div>
+
+  <div class="camera-list" data-testid="camera-list">
+    <article class="camera-card" data-testid="camera-card" data-id="cam-1">
+      <h2>Canon EOS R50</h2>
+      <p>Kenno: APS-C</p>
+      <p>Hinta: 799 €</p>
+      <p>Vuosi: 2023</p>
+      <button type="button" class="favorite-button" data-testid="favorite-button" data-id="cam-1">
+        ☆ Suosikki
+      </button>
+    </article>
+
+    <article class="camera-card" data-testid="camera-card" data-id="cam-2">
+      <h2>Nikon Z5</h2>
+      <p>Kenno: Full Frame</p>
+      <p>Hinta: 1399 €</p>
+      <p>Vuosi: 2020</p>
+      <button type="button" class="favorite-button is-favorite" data-testid="favorite-button" data-id="cam-2">
+        ★ Suosikki
+      </button>
+    </article>
+
+    <!-- ...loput kamerat samalla rakenteella... -->
+  </div>
+</div>
+```
+
+Huomaa esimerkissä kaksi asiaa:
+
+- Jokainen kortti ja painike tuntee oman kameransa `data-id`-attribuutin kautta. Tämän avulla saat selville, mitä kameraa klikattiin.
+- Suosikiksi merkityn kameran painikkeella on ylimääräinen luokka `is-favorite`. Valmiissa `src/styles.css`-tiedostossa on tälle luokalle jo tyyli.
 
 ## Toiminnalliset vaatimukset
 
-1. Alussa kaikki kamerat näkyvät.
-2. Hakukenttä suodattaa kamerat valmistajan tai mallin mukaan.
-3. Sensorisuodatin näyttää vain valitun sensorikoon kamerat.
-4. Järjestäminen toimii vähintään arvoilla:
-   - `price-asc`: halvin ensin
-   - `price-desc`: kallein ensin
-   - `year-desc`: uusin ensin
-5. Suosikkipainike lisää tai poistaa kameran suosikeista.
-6. Suosikin tila säilyy, vaikka suodatin tai järjestys muuttuu.
-7. `Näytä vain suosikit` näyttää vain suosikkikamerat.
-8. Seuraavat arvot tallennetaan `localStorageen` ja palautetaan sivun alustuksessa:
-   - `w3-dom-sensor`
-   - `w3-dom-sort`
-   - `w3-dom-search`
-   - `w3-dom-favorites`
+1. Alussa kaikki kamerat näkyvät. Kortilla näytetään valmistaja, malli, kennokoko, hinta ja vuosi.
+2. Hakukenttä suodattaa kamerat valmistajan tai mallin mukaan. Haun pitää toimia isoista ja pienistä kirjaimista välittämättä.
+3. Suosikkipainike lisää kameran suosikkeihin tai poistaa sen sieltä. Suosikiksi merkityn kameran painikkeella on luokka `is-favorite`.
+4. Suosikin tila säilyy, vaikka hakusana muuttuu ja lista rakennetaan uudelleen.
+5. Suosikit tallennetaan `localStorageen` avaimella `w3-dom-favorites` JSON-taulukkona kameroiden id-arvoja, esimerkiksi `["cam-1","cam-3"]`. Tallennetut suosikit palautetaan, kun sovellus alustetaan uudelleen.
 
 ## Suositeltu toteutusjärjestys
 
-1. Luo otsikko, kontrollit, laskurit ja tyhjä korttilista.
+1. Luo otsikko, hakukenttä ja tyhjä korttilista.
 2. Tee `createCameraCard(camera)`-funktio, joka palauttaa yhden `article`-elementin.
-3. Tee `render()`-funktio, joka laskee näkyvät kamerat ja rakentaa korttilistan uudelleen.
-4. Lisää tapahtumankuuntelijat hakukentälle, suodattimelle ja järjestykselle.
-5. Lisää suosikit event delegation -mallilla: yksi `click`-kuuntelija korttilistalle.
+3. Tee `render()`-funktio, joka laskee hakusanaan sopivat kamerat ja rakentaa korttilistan uudelleen.
+4. Lisää hakukentälle `input`-tapahtumankuuntelija, joka päivittää hakusanan ja kutsuu `render()`-funktiota.
+5. Lisää suosikit event delegation -mallilla: yksi `click`-kuuntelija korttilistalle, josta tunnistat painetun painikkeen `dataset.id`-arvon avulla.
 6. Lisää `localStorage`-tallennus ja palautus.
+
+## Vinkkejä
+
+- Pidä sovelluksen tila yhdessä paikassa: hakusana merkkijonona ja suosikit esimerkiksi `Set`- tai taulukkorakenteena. Kutsu `render()`-funktiota aina, kun tila muuttuu.
+- `localStorage` tallentaa vain merkkijonoja. Käytä `JSON.stringify`- ja `JSON.parse`-funktioita.
+- Event delegation: kuuntele klikkauksia korttilistalla ja tarkista `event.target.dataset.testid` tai `event.target.closest('[data-testid="favorite-button"]')`.
+- Kun rakennat listan uudelleen, tyhjennä se ensin esimerkiksi `list.replaceChildren()`-kutsulla.
 
 ## Testien ajaminen
 
